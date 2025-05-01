@@ -22,6 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        
     - name: Copy sklearn/.libs DLLs to both .libs and sklearn.libs
       run: |
         python -c "
@@ -81,7 +82,9 @@ jobs:
         report: build/compilation-report.xml
         mingw64: true
         clang: true
-
+        no-deployment-flag: self-execution
+        include-module: flet_desktop
+        
     - name: Debug List DLLs in build output
       run: |
         dir build\main.dist\sklearn.libs\*.dll /s /b || echo "No DLLs found in build output sklearn.libs"
