@@ -28,14 +28,19 @@ jobs:
       with:
         args: install vcredist-all -y --no-progress
 
-    - name: Debug List sklearn .libs contents
+    - name: Debug List sklearn .libs contents in site-packages
       run: |
         python -c "import sklearn, os; print('sklearn.__file__:', sklearn.__file__); libs=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); print('libs:', libs); print('contents:', os.listdir(libs) if os.path.exists(libs) else 'NO .libs DIR')"
 
     - name: Copy sklearn .libs directory if it exists
       run: |
-        python -c "import sklearn, shutil, os; src=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); dst=os.path.join(os.getcwd(), 'sklearn', '.libs'); os.makedirs(os.path.dirname(dst), exist_ok=True); shutil.copytree(src, dst, dirs_exist_ok=True) if os.path.exists(src) else print('No .libs to copy')"
+        python -c "import sklearn, shutil, os; src=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); dst=os.path.join('sklearn', '.libs'); os.makedirs(dst, exist_ok=True); [shutil.copy2(os.path.join(src, f), os.path.join(dst, f)) for f in os.listdir(src)] if os.path.exists(src) else print('No .libs to copy')"
 
+    - name: Debug List copied sklearn .libs in workspace
+      run: |
+        dir sklearn\.libs\*.dll /s /b || echo "No DLLs found in workspace sklearn/.libs"
+      shell: cmd
+      
     - name: Build with Nuitka
       uses: Nuitka/Nuitka-Action@v1.2
       with:
