@@ -39,7 +39,7 @@ jobs:
         standalone: true
         onefile: false
         include-package: flet
-        include-data-files: sklearn/.libs/*.dll=sklearn/.libs/
+        include-data-files: sklearn.libs/*.dll=sklearn.libs/
         output-dir: build
         report: build/compilation-report.xml
 
