@@ -23,39 +23,24 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Install Visual C++ Redistributable
-      uses: crazy-max/ghaction-chocolatey@v3
-      with:
-        args: install vcredist-all -y --no-progress
-
-    - name: Debug List sklearn .libs contents in site-packages
-      run: |
-        python -c "import sklearn, os; print('sklearn.__file__:', sklearn.__file__); libs=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); print('libs:', libs); print('contents:', os.listdir(libs) if os.path.exists(libs) else 'NO .libs DIR')"
-
     - name: Copy sklearn .libs directory if it exists
       run: |
         python -c "import sklearn, shutil, os; src=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); dst=os.path.join('sklearn', '.libs'); os.makedirs(dst, exist_ok=True); [shutil.copy2(os.path.join(src, f), os.path.join(dst, f)) for f in os.listdir(src)] if os.path.exists(src) else print('No .libs to copy')"
-
+    
     - name: Debug List copied sklearn .libs in workspace
       run: |
         dir sklearn\.libs\*.dll /s /b || echo "No DLLs found in workspace sklearn/.libs"
       shell: cmd
-      
+    
     - name: Build with Nuitka
       uses: Nuitka/Nuitka-Action@v1.2
       with:
         script-name: main.py
         standalone: true
         onefile: false
-        include-package: flet,sklearn
-        include-data-dir: sklearn/.libs=sklearn/.libs
+        include-package: flet
+        include-data-files: sklearn/.libs/*.dll=sklearn/.libs/
         output-dir: build
-
-    - name: Verify DLL inclusion
-      run: |
-        echo "Checking for DLLs in build\\main.dist\\sklearn\\.libs"
-        dir build\main.dist\sklearn\.libs\*.dll /s /b || echo "WARNING: DLLs not found!"
-      shell: cmd
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
