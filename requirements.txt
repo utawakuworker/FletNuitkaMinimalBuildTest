@@ -1,3 +1,4 @@
 flet
 scikit-learn
 numpy
+flet-desktop
