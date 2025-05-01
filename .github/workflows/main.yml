@@ -1,0 +1,54 @@
+name: Build Minimal Flet + Sklearn Executable with Nuitka
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Install FFmpeg using Chocolatey (optional, remove if not needed)
+    # - name: Install Chocolatey and FFmpeg
+    #   uses: crazy-max/ghaction-chocolatey@v3
+    #   with:
+    #     args: install ffmpeg -y --no-progress
+
+    - name: Build with Nuitka
+      uses: Nuitka/Nuitka-Action@v1.2
+      with:
+        script-name: main.py
+        standalone: true
+        onefile: false
+        include-package: flet,sklearn
+        include-data-dir: |
+          sklearn/.libs=sklearn/.libs
+        output-dir: build
+
+    - name: Verify DLL inclusion
+      run: |
+        echo "Checking for vcomp140.dll in build\\main.dist\\sklearn\\.libs"
+        dir build\main.dist\sklearn\.libs\*.dll /s /b || echo "WARNING: DLLs not found!"
+      shell: cmd
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: minimal-flet-sklearn-executable
+        path: build/main.dist/
+        if-no-files-found: error
