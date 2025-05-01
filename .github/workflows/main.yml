@@ -23,15 +23,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Copy sklearn .libs directory if it exists
+    - name: Copy sklearn.libs DLLs if they exist
       run: |
-        python -c "import sklearn, shutil, os; src=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); dst=os.path.join('sklearn', '.libs'); os.makedirs(dst, exist_ok=True); [shutil.copy2(os.path.join(src, f), os.path.join(dst, f)) for f in os.listdir(src)] if os.path.exists(src) else print('No .libs to copy')"
-    
-    - name: Debug List copied sklearn .libs in workspace
+        python -c "import os, shutil, sklearn; src=os.path.join(os.path.dirname(sklearn.__file__), '../sklearn.libs'); src=os.path.normpath(src); dst='sklearn.libs'; os.makedirs(dst, exist_ok=True); [shutil.copy2(os.path.join(src, f), os.path.join(dst, f)) for f in os.listdir(src) if f.endswith('.dll')] if os.path.exists(src) else print('No sklearn.libs to copy')"
+
+    - name: Debug List copied sklearn.libs DLLs
       run: |
-        dir sklearn\.libs\*.dll /s /b || echo "No DLLs found in workspace sklearn/.libs"
+        dir sklearn.libs\*.dll /s /b || echo "No DLLs found in workspace sklearn.libs"
       shell: cmd
-    
+
     - name: Build with Nuitka
       uses: Nuitka/Nuitka-Action@v1.2
       with:
@@ -45,7 +45,7 @@ jobs:
 
     - name: Debug List DLLs in build output
       run: |
-        dir build\main.dist\sklearn\.libs\*.dll /s /b || echo "No DLLs found in build output"
+        dir build\main.dist\sklearn.libs\*.dll /s /b || echo "No DLLs found in build output"
       shell: cmd
 
     - name: Upload Executable Artifact
