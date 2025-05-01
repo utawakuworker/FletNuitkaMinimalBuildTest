@@ -23,20 +23,18 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # Install FFmpeg using Chocolatey (optional, remove if not needed)
-    # - name: Install Chocolatey and FFmpeg
-    #   uses: crazy-max/ghaction-chocolatey@v3
-    #   with:
-    #     args: install ffmpeg -y --no-progress
+    - name: Install Visual C++ Redistributable
+      uses: crazy-max/ghaction-chocolatey@v3
+      with:
+        args: install vcredist-all -y --no-progress
 
-    - name: Install dependencies
+    - name: Debug: List sklearn .libs contents
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        python -c "import sklearn, os; print('sklearn.__file__:', sklearn.__file__); libs=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); print('libs:', libs); print('contents:', os.listdir(libs) if os.path.exists(libs) else 'NO .libs DIR')"
 
-    - name: Copy sklearn .libs directory
+    - name: Copy sklearn .libs directory if it exists
       run: |
-        python -c "import sklearn; import shutil; import os; src=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); dst=os.path.join(os.getcwd(), 'sklearn', '.libs'); os.makedirs(os.path.dirname(dst), exist_ok=True); shutil.copytree(src, dst, dirs_exist_ok=True)"
+        python -c "import sklearn, shutil, os; src=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); dst=os.path.join(os.getcwd(), 'sklearn', '.libs'); os.makedirs(os.path.dirname(dst), exist_ok=True); shutil.copytree(src, dst, dirs_exist_ok=True) if os.path.exists(src) else print('No .libs to copy')"
 
     - name: Build with Nuitka
       uses: Nuitka/Nuitka-Action@v1.2
@@ -50,7 +48,7 @@ jobs:
 
     - name: Verify DLL inclusion
       run: |
-        echo "Checking for vcomp140.dll in build\\main.dist\\sklearn\\.libs"
+        echo "Checking for DLLs in build\\main.dist\\sklearn\\.libs"
         dir build\main.dist\sklearn\.libs\*.dll /s /b || echo "WARNING: DLLs not found!"
       shell: cmd
 
