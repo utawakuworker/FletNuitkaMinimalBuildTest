@@ -28,7 +28,7 @@ jobs:
       with:
         args: install vcredist-all -y --no-progress
 
-    - name: Debug: List sklearn .libs contents
+    - name: Debug List sklearn .libs contents
       run: |
         python -c "import sklearn, os; print('sklearn.__file__:', sklearn.__file__); libs=os.path.join(os.path.dirname(sklearn.__file__), '.libs'); print('libs:', libs); print('contents:', os.listdir(libs) if os.path.exists(libs) else 'NO .libs DIR')"
 
