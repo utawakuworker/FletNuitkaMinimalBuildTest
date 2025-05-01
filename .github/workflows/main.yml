@@ -41,10 +41,23 @@ jobs:
         include-package: flet
         include-data-files: sklearn/.libs/*.dll=sklearn/.libs/
         output-dir: build
+        report: build/compilation-report.xml
 
-    - name: Upload Artifact
+    - name: Debug List DLLs in build output
+      run: |
+        dir build\main.dist\sklearn\.libs\*.dll /s /b || echo "No DLLs found in build output"
+      shell: cmd
+
+    - name: Upload Executable Artifact
       uses: actions/upload-artifact@v4
       with:
         name: minimal-flet-sklearn-executable
         path: build/main.dist/
+        if-no-files-found: error
+
+    - name: Upload Nuitka Build Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuitka-build-report
+        path: build/compilation-report.xml
         if-no-files-found: error
