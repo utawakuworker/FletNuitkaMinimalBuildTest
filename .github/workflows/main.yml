@@ -42,6 +42,7 @@ jobs:
         include-data-files: sklearn.libs/*.dll=sklearn.libs/
         output-dir: build
         report: build/compilation-report.xml
+        extra-options: --mingw64 --clang
 
     - name: Debug List DLLs in build output
       run: |
